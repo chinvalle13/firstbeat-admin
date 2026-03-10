@@ -71,19 +71,29 @@ export default function FirstBeatAdminPortal() {
   }, []);
 
   const addStudent = async () => {
-    if (!newStudent) return;
+    if (!newStudent) {
+      alert("Please enter a student name");
+      return;
+    }
 
     const newEntry = {
       name: newStudent,
       instrument: instrument || "TBD",
       package: pkg,
-      lessonDays: lessonDays,
+      lessonDays: lessonDays, // stored as array in Supabase (jsonb)
       paymentAmount: paymentAmount ? Number(paymentAmount) : null,
       paymentDate: paymentDate || null,
       absences: 0,
     };
 
-    await supabase.from("students").insert([newEntry]);
+    const { error } = await supabase.from("students").insert([newEntry]);
+
+    if (error) {
+      console.error("INSERT ERROR:", error);
+      alert("Student was not saved. Check Supabase table columns (package, lessonDays).
+Open Supabase → Table Editor → students.");
+      return;
+    }
 
     setNewStudent("");
     setInstrument("");
