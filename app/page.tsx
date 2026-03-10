@@ -90,8 +90,7 @@ export default function FirstBeatAdminPortal() {
 
     if (error) {
       console.error("INSERT ERROR:", error);
-      alert("Student was not saved. Check Supabase table columns (package, lessonDays).
-Open Supabase → Table Editor → students.");
+      alert(`Student was not saved. Check Supabase table columns (package, lessonDays). Open Supabase → Table Editor → students.`);
       return;
     }
 
