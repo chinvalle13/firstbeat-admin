@@ -21,9 +21,9 @@ const days = [
 const MONTHLY_TUITION = 2500
 const TEACHER_RATE = 250
 
-export default function FirstBeatAdminPortal(){
+export default function FirstBeatAdminPortal() {
 
-const [students,setStudents] = useState<any[]>([])
+const [students, setStudents] = useState<any[]>([])
 
 const [newStudent,setNewStudent] = useState("")
 const [instrument,setInstrument] = useState("")
@@ -142,7 +142,7 @@ return(
 
   <div className="border rounded-xl p-4">
 
-    <h2 className="font-semibold mb-2">
+    <h2 className="text-xl font-semibold mb-4">
       Today's Lessons
     </h2>
 
@@ -150,11 +150,15 @@ return(
       <p>No lessons today</p>
     )}
 
-    {todaysStudents.map(s=>(
-      <div key={s.id}>
-        {s.name} — {s.instrument} — {s.teacher}
-      </div>
-    ))}
+    <div className="space-y-2">
+
+      {todaysStudents.map(s=>(
+        <div key={s.id} className="border p-2 rounded">
+          {s.name} — {s.instrument} — {s.teacher}
+        </div>
+      ))}
+
+    </div>
 
   </div>
 
@@ -162,57 +166,65 @@ return(
 
   <div className="border rounded-xl p-4">
 
-    <h2 className="font-semibold mb-2">
+    <h2 className="text-xl font-semibold mb-4">
       Add Student
     </h2>
 
-    <input
-      placeholder="Student Name"
-      value={newStudent}
-      onChange={e=>setNewStudent(e.target.value)}
-    />
+    <div className="grid gap-2 md:grid-cols-3">
 
-    <input
-      placeholder="Instrument"
-      value={instrument}
-      onChange={e=>setInstrument(e.target.value)}
-    />
+      <input
+        className="border p-2 rounded"
+        placeholder="Student Name"
+        value={newStudent}
+        onChange={e=>setNewStudent(e.target.value)}
+      />
 
-    <input
-      placeholder="Teacher"
-      value={teacher}
-      onChange={e=>setTeacher(e.target.value)}
-    />
+      <input
+        className="border p-2 rounded"
+        placeholder="Instrument"
+        value={instrument}
+        onChange={e=>setInstrument(e.target.value)}
+      />
 
-    <select
-      value={lessonDay}
-      onChange={e=>setLessonDay(Number(e.target.value))}
-    >
+      <input
+        className="border p-2 rounded"
+        placeholder="Teacher"
+        value={teacher}
+        onChange={e=>setTeacher(e.target.value)}
+      />
 
-      {days.map(d=>(
-        <option
-          key={d.value}
-          value={d.value}
-        >
-          {d.label}
-        </option>
-      ))}
+      <select
+        className="border p-2 rounded"
+        value={lessonDay}
+        onChange={e=>setLessonDay(Number(e.target.value))}
+      >
 
-    </select>
+        {days.map(d=>(
+          <option key={d.value} value={d.value}>
+            {d.label}
+          </option>
+        ))}
 
-    <input
-      placeholder="Payment Amount"
-      value={paymentAmount}
-      onChange={e=>setPaymentAmount(e.target.value)}
-    />
+      </select>
 
-    <input
-      type="date"
-      value={paymentDate}
-      onChange={e=>setPaymentDate(e.target.value)}
-    />
+      <input
+        className="border p-2 rounded"
+        placeholder="Payment Amount"
+        value={paymentAmount}
+        onChange={e=>setPaymentAmount(e.target.value)}
+      />
+
+      <input
+        type="date"
+        className="border p-2 rounded"
+        value={paymentDate}
+        onChange={e=>setPaymentDate(e.target.value)}
+      />
+
+    </div>
 
     <button
+      className="bg-black text-white px-4 py-2 rounded mt-4"
       onClick={addStudent}
     >
       Add
@@ -220,21 +232,29 @@ return(
 
   </div>
 
-  {/* STUDENTS LIST */}
+  {/* STUDENT LIST */}
 
   <div className="border rounded-xl p-4">
 
-    <h2 className="font-semibold mb-2">
-      Students
+    <h2 className="text-xl font-semibold mb-4">
+      Student List
     </h2>
 
     {students.map(s=>(
-      <div key={s.id} style={{marginBottom:10}}>
+      <div
+        key={s.id}
+        className="border p-3 rounded flex justify-between items-center mb-2"
+      >
 
-        <strong>{s.name}</strong> — {s.instrument}
+        <div>
+          <p className="font-semibold">{s.name}</p>
+          <p className="text-sm text-gray-400">
+            {s.instrument} — {s.teacher}
+          </p>
+        </div>
 
         <button
-          style={{marginLeft:10}}
+          className="bg-green-600 px-3 py-1 rounded text-white"
           onClick={()=>renewStudent(s)}
         >
           Renew
@@ -249,7 +269,7 @@ return(
 
   <div className="border rounded-xl p-4">
 
-    <h2 className="font-semibold mb-2">
+    <h2 className="text-xl font-semibold mb-4">
       Teacher Payroll
     </h2>
 
