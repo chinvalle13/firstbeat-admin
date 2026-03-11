@@ -18,9 +18,10 @@ const days = [
 { label: "Saturday", value: 6 },
 ]
 
+const MONTHLY_TUITION = 2500
 const TEACHER_RATE = 250
 
-export default function FirstBeatAdminPortal() {
+export default function FirstBeatAdminPortal(){
 
 const [students,setStudents] = useState<any[]>([])
 
@@ -34,9 +35,10 @@ const [paymentDate,setPaymentDate] = useState("")
 async function loadStudents(){
 
 ```
-const {data} = await supabase
+const {data,error} = await supabase
   .from("students")
   .select("*")
+  .order("name")
 
 if(data) setStudents(data)
 ```
@@ -50,6 +52,8 @@ loadStudents()
 async function addStudent(){
 
 ```
+if(!newStudent) return
+
 await supabase
   .from("students")
   .insert([{
@@ -82,7 +86,7 @@ await supabase
   .from("students")
   .update({
     paymentDate:today,
-    paymentAmount:Number(s.paymentAmount)+2500
+    paymentAmount:Number(s.paymentAmount)+MONTHLY_TUITION
   })
   .eq("id",s.id)
 
@@ -93,7 +97,21 @@ loadStudents()
 
 const today = new Date().getDay()
 
-const todaysStudents = students.filter(s => s.lessonDay === today)
+const todaysStudents = students.filter(s => {
+
+```
+if(s.lessonDay !== null && s.lessonDay !== undefined){
+  return s.lessonDay === today
+}
+
+if(Array.isArray(s.lessonDays)){
+  return s.lessonDays.includes(today)
+}
+
+return false
+```
+
+})
 
 const teacherTotals:any = {}
 
@@ -120,11 +138,17 @@ return(
     First Beat Music Studio – Admin Portal
   </h1>
 
-  <div className="border p-4 rounded">
+  {/* TODAY LESSONS */}
+
+  <div className="border rounded-xl p-4">
 
     <h2 className="font-semibold mb-2">
       Today's Lessons
     </h2>
+
+    {todaysStudents.length === 0 && (
+      <p>No lessons today</p>
+    )}
 
     {todaysStudents.map(s=>(
       <div key={s.id}>
@@ -134,7 +158,9 @@ return(
 
   </div>
 
-  <div className="border p-4 rounded">
+  {/* ADD STUDENT */}
+
+  <div className="border rounded-xl p-4">
 
     <h2 className="font-semibold mb-2">
       Add Student
@@ -194,18 +220,21 @@ return(
 
   </div>
 
-  <div className="border p-4 rounded">
+  {/* STUDENTS LIST */}
+
+  <div className="border rounded-xl p-4">
 
     <h2 className="font-semibold mb-2">
       Students
     </h2>
 
     {students.map(s=>(
-      <div key={s.id}>
+      <div key={s.id} style={{marginBottom:10}}>
 
-        {s.name} — {s.instrument}
+        <strong>{s.name}</strong> — {s.instrument}
 
         <button
+          style={{marginLeft:10}}
           onClick={()=>renewStudent(s)}
         >
           Renew
@@ -216,7 +245,9 @@ return(
 
   </div>
 
-  <div className="border p-4 rounded">
+  {/* TEACHER PAYROLL */}
+
+  <div className="border rounded-xl p-4">
 
     <h2 className="font-semibold mb-2">
       Teacher Payroll
