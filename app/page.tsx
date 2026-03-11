@@ -4,9 +4,10 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// SUPABASE
-const supabaseUrl = "https://yfzymtrapibbjytzcuee.supabase.co";
-const supabaseKey = "sb_publishable_RBfBuWmFt-tCRjm9glgYVg_xX6JT-Yl";
+// SUPABASE (ENV VARIABLES)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // DAYS
@@ -42,11 +43,15 @@ function countLessonDaysMultiple(startDate, lessonDays) {
   const d = new Date(start);
 
   while (d <= today) {
+
     if (lessonDays.includes(d.getDay())) count++;
+
     d.setDate(d.getDate() + 1);
+
   }
 
   return count;
+
 }
 
 export default function FirstBeatAdminPortal() {
@@ -64,9 +69,13 @@ export default function FirstBeatAdminPortal() {
   const toggleDay = (day) => {
 
     if (lessonDays.includes(day)) {
+
       setLessonDays(lessonDays.filter((d) => d !== day));
+
     } else {
+
       setLessonDays([...lessonDays, day]);
+
     }
 
   };
@@ -80,7 +89,9 @@ export default function FirstBeatAdminPortal() {
   };
 
   useEffect(() => {
+
     loadStudents();
+
   }, []);
 
   const addStudent = async () => {
@@ -88,6 +99,7 @@ export default function FirstBeatAdminPortal() {
     if (!newStudent) return;
 
     const newEntry = {
+
       name: newStudent,
       instrument: instrument || "TBD",
       teacher: teacher || "",
@@ -96,6 +108,7 @@ export default function FirstBeatAdminPortal() {
       paymentAmount: paymentAmount ? Number(paymentAmount) : 0,
       paymentDate: paymentDate || null,
       absences: 0,
+
     };
 
     await supabase.from("students").insert([newEntry]);
@@ -108,11 +121,13 @@ export default function FirstBeatAdminPortal() {
     setLessonDays([6]);
 
     loadStudents();
+
   };
 
   const deleteStudent = async (id) => {
 
     await supabase.from("students").delete().eq("id", id);
+
     loadStudents();
 
   };
@@ -268,19 +283,11 @@ export default function FirstBeatAdminPortal() {
 
         <h2 className="text-xl font-semibold mb-4">Today's Lessons</h2>
 
-        {todaysStudents.length === 0 && (
-          <p>No lessons scheduled today.</p>
-        )}
-
-        <div className="space-y-2">
-
-          {todaysStudents.map((s) => (
-            <div key={s.id} className="border p-2 rounded">
-              {s.name} – {s.instrument} – {s.teacher}
-            </div>
-          ))}
-
-        </div>
+        {todaysStudents.map((s) => (
+          <div key={s.id} className="border p-2 rounded">
+            {s.name} – {s.instrument} – {s.teacher}
+          </div>
+        ))}
 
       </div>
 
