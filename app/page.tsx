@@ -4,10 +4,12 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+// SUPABASE
 const supabaseUrl = "https://yfzymtrapibbjytzcuee.supabase.co";
 const supabaseKey = "sb_publishable_RBfBuWmFt-tCRjm9glgYVg_xX6JT-Yl";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// DAYS
 const days = [
   { label: "Sunday", value: 0 },
   { label: "Monday", value: 1 },
@@ -18,12 +20,14 @@ const days = [
   { label: "Saturday", value: 6 },
 ];
 
+// PACKAGES
 const packages = {
   Silver: 4,
   Gold: 8,
   Platinum: 12,
 };
 
+// CONSTANTS
 const MONTHLY_TUITION = 2500;
 const TEACHER_PER_LESSON = 250;
 
@@ -81,10 +85,12 @@ export default function FirstBeatAdminPortal() {
 
   const addStudent = async () => {
 
+    if (!newStudent) return;
+
     const newEntry = {
       name: newStudent,
-      instrument: instrument,
-      teacher: teacher,
+      instrument: instrument || "TBD",
+      teacher: teacher || "",
       package: pkg,
       lessonDays: lessonDays,
       paymentAmount: paymentAmount ? Number(paymentAmount) : 0,
@@ -99,6 +105,7 @@ export default function FirstBeatAdminPortal() {
     setTeacher("");
     setPaymentAmount("");
     setPaymentDate("");
+    setLessonDays([6]);
 
     loadStudents();
   };
@@ -140,11 +147,13 @@ export default function FirstBeatAdminPortal() {
 
   };
 
+  // TOTAL TUITION
   const totalIncome = students.reduce(
     (sum, s) => sum + Number(s.paymentAmount || 0),
     0
   );
 
+  // LESSONS USED
   const totalLessonsUsed = students.reduce((sum, s) => {
 
     const studentDays = s.lessonDays || [s.lessonDay];
@@ -162,6 +171,7 @@ export default function FirstBeatAdminPortal() {
 
   const studioNetIncome = totalIncome - totalTeacherPay;
 
+  // TEACHER PAYROLL
   const teacherTotals = {};
 
   students.forEach((s) => {
@@ -216,6 +226,8 @@ export default function FirstBeatAdminPortal() {
         First Beat Music Studio – Admin Portal
       </h1>
 
+      {/* DASHBOARD */}
+
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
 
         <div className="p-4 border rounded-2xl shadow">
@@ -250,6 +262,110 @@ export default function FirstBeatAdminPortal() {
 
       </div>
 
+      {/* TODAY LESSONS */}
+
+      <div className="border rounded-2xl shadow p-4">
+
+        <h2 className="text-xl font-semibold mb-4">Today's Lessons</h2>
+
+        {todaysStudents.length === 0 && (
+          <p>No lessons scheduled today.</p>
+        )}
+
+        <div className="space-y-2">
+
+          {todaysStudents.map((s) => (
+            <div key={s.id} className="border p-2 rounded">
+              {s.name} – {s.instrument} – {s.teacher}
+            </div>
+          ))}
+
+        </div>
+
+      </div>
+
+      {/* ADD STUDENT */}
+
+      <div className="border rounded-2xl shadow p-4">
+
+        <h2 className="text-xl font-semibold mb-4">Add Student</h2>
+
+        <div className="grid gap-2 md:grid-cols-3">
+
+          <input
+            className="border p-2 rounded"
+            placeholder="Student Name"
+            value={newStudent}
+            onChange={(e) => setNewStudent(e.target.value)}
+          />
+
+          <input
+            className="border p-2 rounded"
+            placeholder="Instrument"
+            value={instrument}
+            onChange={(e) => setInstrument(e.target.value)}
+          />
+
+          <input
+            className="border p-2 rounded"
+            placeholder="Teacher"
+            value={teacher}
+            onChange={(e) => setTeacher(e.target.value)}
+          />
+
+          <select
+            className="border p-2 rounded"
+            value={pkg}
+            onChange={(e) => setPkg(e.target.value)}
+          >
+            <option>Silver</option>
+            <option>Gold</option>
+            <option>Platinum</option>
+          </select>
+
+          <input
+            className="border p-2 rounded"
+            placeholder="Payment Amount"
+            value={paymentAmount}
+            onChange={(e) => setPaymentAmount(e.target.value)}
+          />
+
+          <input
+            type="date"
+            className="border p-2 rounded"
+            value={paymentDate}
+            onChange={(e) => setPaymentDate(e.target.value)}
+          />
+
+        </div>
+
+        <p className="mt-3 text-sm font-semibold">Lesson Days</p>
+
+        <div className="flex flex-wrap gap-2">
+
+          {days.map((d) => (
+            <button
+              key={d.value}
+              className={`px-3 py-1 border rounded ${lessonDays.includes(d.value) ? "bg-black text-white" : ""}`}
+              onClick={() => toggleDay(d.value)}
+            >
+              {d.label}
+            </button>
+          ))}
+
+        </div>
+
+        <button
+          className="bg-black text-white px-4 py-2 rounded mt-4"
+          onClick={addStudent}
+        >
+          Add
+        </button>
+
+      </div>
+
+      {/* TEACHER PAYROLL */}
+
       <div className="border rounded-2xl shadow p-4">
 
         <h2 className="text-xl font-semibold mb-4">Teacher Payroll</h2>
@@ -259,49 +375,6 @@ export default function FirstBeatAdminPortal() {
           <p key={t}>
             {t} — ₱{amount}
           </p>
-
-        ))}
-
-      </div>
-
-      <div className="border rounded-2xl shadow p-4">
-
-        <h2 className="text-xl font-semibold mb-4">Students</h2>
-
-        {students.map((s) => (
-
-          <div key={s.id} className="border p-3 rounded mb-2">
-
-            <p className="font-bold">{s.name}</p>
-            <p>Instrument: {s.instrument}</p>
-            <p>Teacher: {s.teacher}</p>
-
-            <div className="flex gap-2 mt-2">
-
-              <button
-                className="border px-3 py-1 rounded"
-                onClick={() => markAbsent(s)}
-              >
-                Absent
-              </button>
-
-              <button
-                className="bg-green-600 text-white px-3 py-1 rounded"
-                onClick={() => renewPayment(s)}
-              >
-                Renew
-              </button>
-
-              <button
-                className="bg-red-600 text-white px-3 py-1 rounded"
-                onClick={() => deleteStudent(s.id)}
-              >
-                Delete
-              </button>
-
-            </div>
-
-          </div>
 
         ))}
 
