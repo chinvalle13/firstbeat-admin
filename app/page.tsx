@@ -1,394 +1,376 @@
-// @ts-nocheck
-'use client';
+'use client'
 
-import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { useState, useEffect } from "react"
+import { createClient } from "@supabase/supabase-js"
 
-// SUPABASE (ENV VARIABLES)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+// SUPABASE
+const supabase = createClient(
+process.env.NEXT_PUBLIC_SUPABASE_URL!,
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 // DAYS
 const days = [
-  { label: "Sunday", value: 0 },
-  { label: "Monday", value: 1 },
-  { label: "Tuesday", value: 2 },
-  { label: "Wednesday", value: 3 },
-  { label: "Thursday", value: 4 },
-  { label: "Friday", value: 5 },
-  { label: "Saturday", value: 6 },
-];
+{ label: "Sunday", value: 0 },
+{ label: "Monday", value: 1 },
+{ label: "Tuesday", value: 2 },
+{ label: "Wednesday", value: 3 },
+{ label: "Thursday", value: 4 },
+{ label: "Friday", value: 5 },
+{ label: "Saturday", value: 6 },
+]
 
 // PACKAGES
-const packages = {
-  Silver: 4,
-  Gold: 8,
-  Platinum: 12,
-};
+const packages: any = {
+Silver: 4,
+Gold: 8,
+Platinum: 12,
+}
 
 // CONSTANTS
-const MONTHLY_TUITION = 2500;
-const TEACHER_PER_LESSON = 250;
+const MONTHLY_TUITION = 2500
+const TEACHER_PER_LESSON = 250
 
-function countLessonDaysMultiple(startDate, lessonDays) {
+function countLessonDaysMultiple(startDate: any, lessonDays: number[]) {
 
-  if (!startDate) return 0;
+if (!startDate) return 0
 
-  const start = new Date(startDate);
-  const today = new Date();
+const start = new Date(startDate)
+const today = new Date()
 
-  let count = 0;
-  const d = new Date(start);
+let count = 0
+const d = new Date(start)
 
-  while (d <= today) {
+while (d <= today) {
+if (lessonDays.includes(d.getDay())) count++
+d.setDate(d.getDate() + 1)
+}
 
-    if (lessonDays.includes(d.getDay())) count++;
-
-    d.setDate(d.getDate() + 1);
-
-  }
-
-  return count;
-
+return count
 }
 
 export default function FirstBeatAdminPortal() {
 
-  const [students, setStudents] = useState([]);
+const [students, setStudents] = useState<any[]>([])
 
-  const [newStudent, setNewStudent] = useState("");
-  const [instrument, setInstrument] = useState("");
-  const [teacher, setTeacher] = useState("");
-  const [pkg, setPkg] = useState("Silver");
-  const [lessonDays, setLessonDays] = useState([6]);
-  const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState("");
+const [newStudent, setNewStudent] = useState("")
+const [instrument, setInstrument] = useState("")
+const [teacher, setTeacher] = useState("")
+const [pkg, setPkg] = useState("Silver")
+const [lessonDays, setLessonDays] = useState<number[]>([6])
+const [paymentAmount, setPaymentAmount] = useState("")
+const [paymentDate, setPaymentDate] = useState("")
 
-  const toggleDay = (day) => {
+const toggleDay = (day: number) => {
 
-    if (lessonDays.includes(day)) {
+```
+if (lessonDays.includes(day)) {
+  setLessonDays(lessonDays.filter((d) => d !== day))
+} else {
+  setLessonDays([...lessonDays, day])
+}
+```
 
-      setLessonDays(lessonDays.filter((d) => d !== day));
+}
 
-    } else {
+async function loadStudents() {
 
-      setLessonDays([...lessonDays, day]);
+```
+const { data } = await supabase.from("students").select("*")
 
-    }
+if (data) setStudents(data)
+```
 
-  };
+}
 
-  const loadStudents = async () => {
+useEffect(() => {
+loadStudents()
+}, [])
 
-    const { data } = await supabase.from("students").select("*");
+async function addStudent() {
 
-    if (data) setStudents(data);
+```
+if (!newStudent) return
 
-  };
+const newEntry = {
+  name: newStudent,
+  instrument: instrument || "TBD",
+  teacher: teacher || "",
+  package: pkg,
+  lessonDays: lessonDays,
+  paymentAmount: paymentAmount ? Number(paymentAmount) : 0,
+  paymentDate: paymentDate || null,
+  absences: 0,
+}
 
-  useEffect(() => {
+await supabase.from("students").insert([newEntry])
 
-    loadStudents();
+setNewStudent("")
+setInstrument("")
+setTeacher("")
+setPaymentAmount("")
+setPaymentDate("")
+setLessonDays([6])
 
-  }, []);
+loadStudents()
+```
 
-  const addStudent = async () => {
+}
 
-    if (!newStudent) return;
+async function deleteStudent(id: number) {
 
-    const newEntry = {
+```
+await supabase.from("students").delete().eq("id", id)
 
-      name: newStudent,
-      instrument: instrument || "TBD",
-      teacher: teacher || "",
-      package: pkg,
-      lessonDays: lessonDays,
-      paymentAmount: paymentAmount ? Number(paymentAmount) : 0,
-      paymentDate: paymentDate || null,
-      absences: 0,
+loadStudents()
+```
 
-    };
+}
 
-    await supabase.from("students").insert([newEntry]);
+async function markAbsent(s: any) {
 
-    setNewStudent("");
-    setInstrument("");
-    setTeacher("");
-    setPaymentAmount("");
-    setPaymentDate("");
-    setLessonDays([6]);
+```
+await supabase
+  .from("students")
+  .update({ absences: (s.absences || 0) + 1 })
+  .eq("id", s.id)
 
-    loadStudents();
+loadStudents()
+```
 
-  };
+}
 
-  const deleteStudent = async (id) => {
+async function renewPayment(s: any) {
 
-    await supabase.from("students").delete().eq("id", id);
+```
+const today = new Date().toISOString().split("T")[0]
 
-    loadStudents();
+const newAmount = Number(s.paymentAmount || 0) + MONTHLY_TUITION
 
-  };
+await supabase
+  .from("students")
+  .update({
+    paymentDate: today,
+    paymentAmount: newAmount,
+    absences: 0,
+  })
+  .eq("id", s.id)
 
-  const markAbsent = async (s) => {
+loadStudents()
+```
 
-    await supabase
-      .from("students")
-      .update({ absences: (s.absences || 0) + 1 })
-      .eq("id", s.id);
+}
 
-    loadStudents();
+const totalIncome = students.reduce(
+(sum, s) => sum + Number(s.paymentAmount || 0),
+0
+)
 
-  };
+const totalLessonsUsed = students.reduce((sum, s) => {
 
-  const renewPayment = async (s) => {
+```
+const studentDays = s.lessonDays || [s.lessonDay]
 
-    const today = new Date().toISOString().split("T")[0];
+const usedLessons = Math.max(
+  0,
+  countLessonDaysMultiple(s.paymentDate, studentDays) -
+    (s.absences || 0)
+)
 
-    const newAmount = Number(s.paymentAmount || 0) + MONTHLY_TUITION;
+return sum + usedLessons
+```
 
-    await supabase
-      .from("students")
-      .update({
-        paymentDate: today,
-        paymentAmount: newAmount,
-        absences: 0
-      })
-      .eq("id", s.id);
+}, 0)
 
-    loadStudents();
+const totalTeacherPay = totalLessonsUsed * TEACHER_PER_LESSON
 
-  };
+const studioNetIncome = totalIncome - totalTeacherPay
 
-  // TOTAL TUITION
-  const totalIncome = students.reduce(
-    (sum, s) => sum + Number(s.paymentAmount || 0),
-    0
-  );
+const teacherTotals: any = {}
 
-  // LESSONS USED
-  const totalLessonsUsed = students.reduce((sum, s) => {
+students.forEach((s) => {
 
-    const studentDays = s.lessonDays || [s.lessonDay];
+```
+const studentDays = s.lessonDays || [s.lessonDay]
 
-    const usedLessons = Math.max(
-      0,
-      countLessonDaysMultiple(s.paymentDate, studentDays) - (s.absences || 0)
-    );
+const usedLessons = Math.max(
+  0,
+  countLessonDaysMultiple(s.paymentDate, studentDays) -
+    (s.absences || 0)
+)
 
-    return sum + usedLessons;
+const pay = usedLessons * TEACHER_PER_LESSON
 
-  }, 0);
+if (!teacherTotals[s.teacher]) teacherTotals[s.teacher] = 0
 
-  const totalTeacherPay = totalLessonsUsed * TEACHER_PER_LESSON;
+teacherTotals[s.teacher] += pay
+```
 
-  const studioNetIncome = totalIncome - totalTeacherPay;
+})
 
-  // TEACHER PAYROLL
-  const teacherTotals = {};
+const today = new Date().getDay()
 
-  students.forEach((s) => {
+const todaysStudents = students.filter((s) => {
 
-    const studentDays = s.lessonDays || [s.lessonDay];
+```
+const studentDays = s.lessonDays || [s.lessonDay]
 
-    const usedLessons = Math.max(
-      0,
-      countLessonDaysMultiple(s.paymentDate, studentDays) - (s.absences || 0)
-    );
+return studentDays.includes(today)
+```
 
-    const pay = usedLessons * TEACHER_PER_LESSON;
+})
 
-    if (!teacherTotals[s.teacher]) teacherTotals[s.teacher] = 0;
+const paymentDueCount = students.filter((s) => {
 
-    teacherTotals[s.teacher] += pay;
+```
+const studentDays = s.lessonDays || [s.lessonDay]
 
-  });
+const usedLessons = Math.max(
+  0,
+  countLessonDaysMultiple(s.paymentDate, studentDays) -
+    (s.absences || 0)
+)
 
-  const today = new Date().getDay();
+const limit = packages[s.package || "Silver"]
 
-  const todaysStudents = students.filter((s) => {
+const lessonsLeft = Math.max(0, limit - usedLessons)
 
-    const studentDays = s.lessonDays || [s.lessonDay];
+return lessonsLeft === 0
+```
 
-    return studentDays.includes(today);
+}).length
 
-  });
+return (
 
-  const paymentDueCount = students.filter((s) => {
+```
+<div className="p-6 grid gap-6">
 
-    const studentDays = s.lessonDays || [s.lessonDay];
+  <h1 className="text-3xl font-bold">
+    First Beat Music Studio – Admin Portal
+  </h1>
 
-    const usedLessons = Math.max(
-      0,
-      countLessonDaysMultiple(s.paymentDate, studentDays) - (s.absences || 0)
-    );
+  <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
 
-    const limit = packages[s.package || "Silver"];
+    <div className="p-4 border rounded-xl">
+      Total Students
+      <div className="text-xl font-bold">{students.length}</div>
+    </div>
 
-    const lessonsLeft = Math.max(0, limit - usedLessons);
+    <div className="p-4 border rounded-xl">
+      Total Tuition
+      <div className="text-xl font-bold">₱{totalIncome}</div>
+    </div>
 
-    return lessonsLeft === 0;
+    <div className="p-4 border rounded-xl">
+      Teacher Pay
+      <div className="text-xl font-bold">₱{totalTeacherPay}</div>
+    </div>
 
-  }).length;
+    <div className="p-4 border rounded-xl">
+      Studio Net
+      <div className="text-xl font-bold">₱{studioNetIncome}</div>
+    </div>
 
-  return (
+    <div className="p-4 border rounded-xl">
+      Today's Lessons
+      <div className="text-xl font-bold">{todaysStudents.length}</div>
+    </div>
 
-    <div className="p-6 grid gap-6">
+    <div className="p-4 border rounded-xl">
+      Payment Due
+      <div className="text-xl font-bold">{paymentDueCount}</div>
+    </div>
 
-      <h1 className="text-3xl font-bold">
-        First Beat Music Studio – Admin Portal
-      </h1>
+  </div>
 
-      {/* DASHBOARD */}
+  <div className="border rounded-xl p-4">
+    <h2 className="font-semibold mb-2">Today's Lessons</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-
-        <div className="p-4 border rounded-2xl shadow">
-          <p>Total Students</p>
-          <p className="text-xl font-bold">{students.length}</p>
-        </div>
-
-        <div className="p-4 border rounded-2xl shadow">
-          <p>Total Tuition</p>
-          <p className="text-xl font-bold">₱{totalIncome}</p>
-        </div>
-
-        <div className="p-4 border rounded-2xl shadow">
-          <p>Teacher Pay</p>
-          <p className="text-xl font-bold">₱{totalTeacherPay}</p>
-        </div>
-
-        <div className="p-4 border rounded-2xl shadow">
-          <p>Studio Net</p>
-          <p className="text-xl font-bold">₱{studioNetIncome}</p>
-        </div>
-
-        <div className="p-4 border rounded-2xl shadow">
-          <p>Today's Lessons</p>
-          <p className="text-xl font-bold">{todaysStudents.length}</p>
-        </div>
-
-        <div className="p-4 border rounded-2xl shadow">
-          <p>Payment Due</p>
-          <p className="text-xl font-bold">{paymentDueCount}</p>
-        </div>
-
+    {todaysStudents.map((s) => (
+      <div key={s.id}>
+        {s.name} — {s.instrument} — {s.teacher}
       </div>
+    ))}
+  </div>
 
-      {/* TODAY LESSONS */}
+  <div className="border rounded-xl p-4">
 
-      <div className="border rounded-2xl shadow p-4">
+    <h2 className="font-semibold mb-2">Add Student</h2>
 
-        <h2 className="text-xl font-semibold mb-4">Today's Lessons</h2>
+    <input
+      placeholder="Student Name"
+      value={newStudent}
+      onChange={(e) => setNewStudent(e.target.value)}
+    />
 
-        {todaysStudents.map((s) => (
-          <div key={s.id} className="border p-2 rounded">
-            {s.name} – {s.instrument} – {s.teacher}
-          </div>
-        ))}
+    <input
+      placeholder="Instrument"
+      value={instrument}
+      onChange={(e) => setInstrument(e.target.value)}
+    />
 
-      </div>
+    <input
+      placeholder="Teacher"
+      value={teacher}
+      onChange={(e) => setTeacher(e.target.value)}
+    />
 
-      {/* ADD STUDENT */}
+    <select value={pkg} onChange={(e) => setPkg(e.target.value)}>
+      <option>Silver</option>
+      <option>Gold</option>
+      <option>Platinum</option>
+    </select>
 
-      <div className="border rounded-2xl shadow p-4">
+    <input
+      placeholder="Payment Amount"
+      value={paymentAmount}
+      onChange={(e) => setPaymentAmount(e.target.value)}
+    />
 
-        <h2 className="text-xl font-semibold mb-4">Add Student</h2>
+    <input
+      type="date"
+      value={paymentDate}
+      onChange={(e) => setPaymentDate(e.target.value)}
+    />
 
-        <div className="grid gap-2 md:grid-cols-3">
+    <div className="flex gap-2 mt-2">
 
-          <input
-            className="border p-2 rounded"
-            placeholder="Student Name"
-            value={newStudent}
-            onChange={(e) => setNewStudent(e.target.value)}
-          />
-
-          <input
-            className="border p-2 rounded"
-            placeholder="Instrument"
-            value={instrument}
-            onChange={(e) => setInstrument(e.target.value)}
-          />
-
-          <input
-            className="border p-2 rounded"
-            placeholder="Teacher"
-            value={teacher}
-            onChange={(e) => setTeacher(e.target.value)}
-          />
-
-          <select
-            className="border p-2 rounded"
-            value={pkg}
-            onChange={(e) => setPkg(e.target.value)}
-          >
-            <option>Silver</option>
-            <option>Gold</option>
-            <option>Platinum</option>
-          </select>
-
-          <input
-            className="border p-2 rounded"
-            placeholder="Payment Amount"
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-          />
-
-          <input
-            type="date"
-            className="border p-2 rounded"
-            value={paymentDate}
-            onChange={(e) => setPaymentDate(e.target.value)}
-          />
-
-        </div>
-
-        <p className="mt-3 text-sm font-semibold">Lesson Days</p>
-
-        <div className="flex flex-wrap gap-2">
-
-          {days.map((d) => (
-            <button
-              key={d.value}
-              className={`px-3 py-1 border rounded ${lessonDays.includes(d.value) ? "bg-black text-white" : ""}`}
-              onClick={() => toggleDay(d.value)}
-            >
-              {d.label}
-            </button>
-          ))}
-
-        </div>
+      {days.map((d) => (
 
         <button
-          className="bg-black text-white px-4 py-2 rounded mt-4"
-          onClick={addStudent}
+          key={d.value}
+          onClick={() => toggleDay(d.value)}
         >
-          Add
+          {d.label}
         </button>
 
-      </div>
-
-      {/* TEACHER PAYROLL */}
-
-      <div className="border rounded-2xl shadow p-4">
-
-        <h2 className="text-xl font-semibold mb-4">Teacher Payroll</h2>
-
-        {Object.entries(teacherTotals).map(([t, amount]) => (
-
-          <p key={t}>
-            {t} — ₱{amount}
-          </p>
-
-        ))}
-
-      </div>
+      ))}
 
     </div>
 
-  );
+    <button onClick={addStudent}>
+      Add
+    </button>
+
+  </div>
+
+  <div className="border rounded-xl p-4">
+
+    <h2 className="font-semibold mb-2">Teacher Payroll</h2>
+
+    {Object.entries(teacherTotals).map(([t, amount]) => (
+
+      <div key={t}>
+        {t} — ₱{amount as number}
+      </div>
+
+    ))}
+
+  </div>
+
+</div>
+```
+
+)
 
 }
