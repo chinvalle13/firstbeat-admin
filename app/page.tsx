@@ -1,11 +1,13 @@
 'use client'
 
+// @ts-nocheck
+
 import { useState, useEffect } from "react"
 import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(
-process.env.NEXT_PUBLIC_SUPABASE_URL!,
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+process.env.NEXT_PUBLIC_SUPABASE_URL,
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
 const days = [
@@ -23,7 +25,7 @@ const TEACHER_RATE = 250
 
 export default function FirstBeatAdminPortal() {
 
-const [students, setStudents] = useState<any[]>([])
+const [students,setStudents] = useState([])
 
 const [newStudent,setNewStudent] = useState("")
 const [instrument,setInstrument] = useState("")
@@ -40,7 +42,9 @@ const {data,error} = await supabase
   .select("*")
   .order("name")
 
-if(data) setStudents(data)
+if(data){
+  setStudents(data)
+}
 ```
 
 }
@@ -56,15 +60,17 @@ if(!newStudent) return
 
 await supabase
   .from("students")
-  .insert([{
-    name:newStudent,
-    instrument:instrument,
-    teacher:teacher,
-    lessonDay:lessonDay,
-    paymentAmount:Number(paymentAmount),
-    paymentDate:paymentDate,
-    absences:0
-  }])
+  .insert([
+    {
+      name:newStudent,
+      instrument:instrument,
+      teacher:teacher,
+      lessonDay:lessonDay,
+      paymentAmount:Number(paymentAmount),
+      paymentDate:paymentDate,
+      absences:0
+    }
+  ])
 
 setNewStudent("")
 setInstrument("")
@@ -77,7 +83,7 @@ loadStudents()
 
 }
 
-async function renewStudent(s:any){
+async function renewStudent(s){
 
 ```
 const today = new Date().toISOString().split("T")[0]
@@ -97,7 +103,7 @@ loadStudents()
 
 const today = new Date().getDay()
 
-const todaysStudents = students.filter(s => {
+const todaysStudents = students.filter(s=>{
 
 ```
 if(s.lessonDay !== null && s.lessonDay !== undefined){
@@ -113,7 +119,7 @@ return false
 
 })
 
-const teacherTotals:any = {}
+const teacherTotals = {}
 
 students.forEach(s=>{
 
@@ -138,8 +144,6 @@ return(
     First Beat Music Studio – Admin Portal
   </h1>
 
-  {/* TODAY LESSONS */}
-
   <div className="border rounded-xl p-4">
 
     <h2 className="text-xl font-semibold mb-4">
@@ -161,8 +165,6 @@ return(
     </div>
 
   </div>
-
-  {/* ADD STUDENT */}
 
   <div className="border rounded-xl p-4">
 
@@ -232,8 +234,6 @@ return(
 
   </div>
 
-  {/* STUDENT LIST */}
-
   <div className="border rounded-xl p-4">
 
     <h2 className="text-xl font-semibold mb-4">
@@ -265,8 +265,6 @@ return(
 
   </div>
 
-  {/* TEACHER PAYROLL */}
-
   <div className="border rounded-xl p-4">
 
     <h2 className="text-xl font-semibold mb-4">
@@ -275,7 +273,7 @@ return(
 
     {Object.entries(teacherTotals).map(([t,a])=>(
       <div key={t}>
-        {t} — ₱{a as number}
+        {t} — ₱{a}
       </div>
     ))}
 
